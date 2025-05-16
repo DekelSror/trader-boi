@@ -1,11 +1,7 @@
-#include <stdlib.h>
 #include <stdio.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <mqueue.h>
 #include <string.h>
 #include <errno.h>
-#include <signal.h>
 
 #include "market_data.h"
 
@@ -13,7 +9,6 @@
 #define MQ_MAX_MSG_SIZE sizeof(parsed_message_t)
 
 static mqd_t mq = -1;
-static volatile sig_atomic_t running = 1;
 
 void alg1_init()
 {
@@ -59,28 +54,23 @@ int main(int argc, char const *argv[], char** envp)
 
     parsed_message_t pm;
     unsigned int prio;
-    ssize_t bytes_read;
+    ssize_t event_size;
     
-    while (running)
+    while (1)
     {
-        bytes_read = mq_receive(mq, (char*)&pm, MQ_MAX_MSG_SIZE, &prio);
+        event_size = mq_receive(mq, (char*)&pm, MQ_MAX_MSG_SIZE, &prio);
         
-        if (bytes_read == -1)
+        if (event_size == -1)
         {
             fprintf(stderr, "Error receiving from queue: %s\n", strerror(errno));
             break;
         }
         
-        if (bytes_read >= sizeof(pm))
+        if (event_size >= sizeof(pm))
         {
-            alg1_handlers[pm.type](&pm);
-            if (pm.type == MSG_TRADE)
+            if (pm.type < 2)
             {
-                alg1_on_trade(&pm.event.trade);
-            } 
-            else if (pm.type == MSG_DEPTH)
-            {
-                alg1_on_depth(&pm.event.depth);
+                alg1_handlers[pm.type](&pm.event);
             }
             else
             {

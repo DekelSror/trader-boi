@@ -1,14 +1,10 @@
 #include <unistd.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <dlfcn.h>
-#include <stdbool.h>
-#include <time.h>
-#include <fcntl.h>
-#include <sys/stat.h>
 #include <mqueue.h>
+#include <dlfcn.h>
 #include <string.h>
 #include <errno.h>
+#include <fcntl.h>
 
 #include "NxCoreAPI.h"
 #include "nx_parsers.h"
@@ -104,7 +100,7 @@ int main()
     int result = market_callback(data_path, NULL, 0, 0, parse_message);
     if (result != NxAPIERR_NO_ERROR)
     {
-        fprintf(stderr, "Error processing NxCore data: %d\n", result);
+        fprintf(stderr, "Error processing NxCore data: %d\ndata_path %s\n", result, data_path);
         dlclose(libnx);
         mq_close(mq);
         mq_unlink(MQ_NAME);

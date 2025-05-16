@@ -19,8 +19,8 @@ char* get_config_value(const char* key)
         if (strncmp(key_start, key, p - key_start) == 0)
         {
             char* val_end = p;
-            while (*val_end++ != '\n');
-            val_end -= 2;
+            while (*val_end && *val_end != '\n') val_end++;
+            val_end--;
             char* val_buf = malloc(val_end - p + 1);
             strncpy(val_buf, p + 1, val_end - p);
             val_buf[val_end - p] = 0;
