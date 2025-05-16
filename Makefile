@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-Wall -Wextra -g -std=gnu2x
 LDFLAGS=-ldl -lpthread
 
-PARSER_OBJS=market_data_processor_single.o nx_parsers.o
+PARSER_OBJS=market_data_processor_single.o nx_parsers.o config_utils.o print_utils.o
 ALG_OBJS=alg.o
 
 PARSER=market_data_processor

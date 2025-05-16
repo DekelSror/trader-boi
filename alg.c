@@ -7,7 +7,7 @@
 #include <errno.h>
 #include <signal.h>
 
-#include "alg.h"
+#include "market_data.h"
 
 #define MQ_NAME "/parsed_market_data"
 #define MQ_MAX_MSG_SIZE sizeof(parsed_message_t)

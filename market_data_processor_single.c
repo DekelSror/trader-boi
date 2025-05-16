@@ -13,62 +13,16 @@
 #include "NxCoreAPI.h"
 #include "nx_parsers.h"
 #include "market_data.h"
-#include "alg.h"
+#include "print_utils.h"
+#include "config_utils.h"
 
 #define MQ_NAME "/parsed_market_data"
 #define MQ_MAX_MESSAGES 10
 #define MQ_MAX_MSG_SIZE sizeof(parsed_message_t)
 
 static NxCoreProcessTape market_callback = NULL;
-static size_t message_count = 0;
 static mqd_t mq = -1;
 
-void print_trade(const trade_t* trade) {
-    if (!trade) return;
-    
-    time_t seconds = trade->timestamp / 1000000;
-    int microseconds = trade->timestamp % 1000000;
-    struct tm* tm_info = localtime(&seconds);
-    
-    printf("TRADE: %04d-%02d-%02d %02d:%02d:%02d.%06d | Symbol: %s | Price: %.2f | Size: %d | Side: %c (%d) | Condition: %s\n",
-           tm_info->tm_year + 1900, tm_info->tm_mon + 1, tm_info->tm_mday,
-           tm_info->tm_hour, tm_info->tm_min, tm_info->tm_sec, microseconds,
-           trade->symbol, trade->price, trade->volume, trade->side, (int)trade->side, trade->condition);
-}
-
-void print_depth(const market_depth_t* depth) {
-    if (!depth) return;
-    
-    time_t seconds = depth->timestamp / 1000000;
-    int microseconds = depth->timestamp % 1000000;
-    struct tm* tm_info = localtime(&seconds);
-    
-    printf("\nMARKET DEPTH: %04d-%02d-%02d %02d:%02d:%02d.%06d | Symbol: %s | Spread: %.2f\n",
-           tm_info->tm_year + 1900, tm_info->tm_mon + 1, tm_info->tm_mday,
-           tm_info->tm_hour, tm_info->tm_min, tm_info->tm_sec, microseconds,
-           depth->symbol, depth->spread);
-    
-    printf("BIDS:\n");
-    for (int i = 0; i < 10; i++) {
-        if (depth->bids[i].size > 0) {
-            printf("  %.2f x %d (%d orders)\n",
-                   depth->bids[i].price,
-                   depth->bids[i].size,
-                   depth->bids[i].orders);
-        }
-    }
-    
-    printf("ASKS:\n");
-    for (int i = 0; i < 10; i++) {
-        if (depth->asks[i].size > 0) {
-            printf("  %.2f x %d (%d orders)\n",
-                   depth->asks[i].price,
-                   depth->asks[i].size,
-                   depth->asks[i].orders);
-        }
-    }
-    printf("\n");
-}
 
 int __stdcall parse_message(const struct NxCoreSystem* sys, const struct NxCoreMessage* msg) 
 {
@@ -112,10 +66,7 @@ void print_nx_datetime(NxDate* d, NxTime* t)
 
 int main()
 {
-    const char* data_path = "/home/dekel/Downloads/20210601.TV.nx2";
-    int test_fd = open(data_path, O_RDONLY);
-
-    close(test_fd);
+    char* data_path = get_config_value("dataset_path");
 
     struct mq_attr attr;
     attr.mq_flags = 0;                // Flags (0 = blocking)

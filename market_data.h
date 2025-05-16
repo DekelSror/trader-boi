@@ -1,6 +1,7 @@
-#ifndef MARKET_DATA_H
-#define MARKET_DATA_H
+#ifndef market_data_h
+#define market_data_h
 
+#include <stdint.h>
 // Common market data structures following FIX/FAST protocol conventions
 
 // Trade data (Time & Sales)
@@ -31,4 +32,14 @@ typedef struct {
     char symbol[16];        // Ticker symbol
 } market_depth_t;
 
-#endif // MARKET_DATA_H 
+typedef enum {MSG_TRADE, MSG_DEPTH} message_type_e;
+typedef struct
+{
+    message_type_e type;
+    union {
+        trade_t trade;
+        market_depth_t depth;
+    } event;
+} parsed_message_t;
+
+#endif // market_data_h 
