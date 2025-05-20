@@ -44,7 +44,8 @@ int __stdcall parse_message(const struct NxCoreSystem* sys, const struct NxCoreM
     }
     
 
-    if (mq_send(mq, (char*)&pm, sizeof(pm), 0) == -1) {
+    if (mq_send(mq, (char*)&pm, sizeof(pm), 0) == -1)
+    {
         fprintf(stderr, "Failed to send depth to queue: %s\n", strerror(errno));
     }
 

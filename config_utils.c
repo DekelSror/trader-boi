@@ -33,6 +33,6 @@ char* get_config_value(const char* key)
         }
     }
 
-    return NULL;
     close(config_fd);
+    return NULL;
 }

@@ -39,7 +39,7 @@ int load_algs()
     return 0;
 }
 
-int main(int argc, char const *argv[], char** envp)
+int main()
 {
     mq = mq_open(MQ_NAME, O_RDONLY);
     if (mq == (mqd_t)-1) {
@@ -70,6 +70,7 @@ int main(int argc, char const *argv[], char** envp)
         {
             if (pm.type < 2)
             {
+                // send event to aggregators and the such
                 alg1_handlers[pm.type](&pm.event);
             }
             else
