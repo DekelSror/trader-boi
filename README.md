@@ -6,3 +6,6 @@
 5. open two terminals in the repo root
 6. first ./market_data_processor
 7. then ./startegy_processor
+
+
+IDAN - compile mocker.c as is.. run it first then the ./strategy_processor
