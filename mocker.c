@@ -2,11 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <mqueue.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <time.h>
 #include <sys/time.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 
 #include "market_data.h" // trade_t, market_depth_t, parsed_message_t
 
@@ -97,21 +98,13 @@ void trade_print(parsed_message_t msg)
 
 int main(int argc, char const *argv[])
 {
-    mqd_t mqd;
-    struct mq_attr attr = {
-        .mq_flags = 0,
-        .mq_maxmsg = MQ_MAX_MESSAGES,
-        .mq_msgsize = sizeof(parsed_message_t),
-        .mq_curmsgs = 0,
+    struct sockaddr_un server_addr = 
+    {
+        .sun_family = AF_UNIX,
+        .sun_path = "/tmp/trader-boi-comm",
     };
 
-    mq_unlink(MQ_NAME); // Unlink previous queue if it exists, for clean startup
-    mqd = mq_open(MQ_NAME, O_CREAT | O_WRONLY, 0644, &attr);
-    if (mqd == (mqd_t)-1) {
-        perror("mq_open failed");
-        exit(EXIT_FAILURE);
-    }
-    printf("Message queue %s opened successfully.\\n", MQ_NAME);
+    int sock = socket(AF_UNIX, SOCK_DGRAM, 0);
 
     mocker_t aaa_mocker = {
         .current_price = 100,
@@ -131,6 +124,10 @@ int main(int argc, char const *argv[])
         .symbol = "BBB",
     };
 
+    ssize_t dbg = -1;
+
+    getc(stdin);
+
     while (mock_size--)
     {
         tick(&aaa_mocker);
@@ -141,17 +138,13 @@ int main(int argc, char const *argv[])
         parsed_message_t aaa_msg = create_trade(aaa_mocker, ts);
         trade_print(aaa_msg);
 
-        if (mq_send(mqd, (const char *)&aaa_msg, sizeof(parsed_message_t), 0) == -1) {
-            perror("mq_send trade AAA failed");
-        }
-
+        dbg = sendto(sock, &aaa_msg, sizeof(aaa_msg), 0, (const struct sockaddr *)&server_addr, sizeof(server_addr));
+        
 
         parsed_message_t bbb_msg = create_trade(bbb_mocker, ts);
         trade_print(bbb_msg);
         
-        if (mq_send(mqd, (const char *)&bbb_msg, sizeof(parsed_message_t), 0) == -1) {
-            perror("mq_send trade BBB failed");
-        }
+        dbg = sendto(sock, &bbb_msg, sizeof(bbb_msg), 0, (const struct sockaddr *)&server_addr, sizeof(server_addr));
         
         const struct timespec nsleeptime = {.tv_nsec=100000000};
         nanosleep(&nsleeptime, NULL);
@@ -160,17 +153,19 @@ int main(int argc, char const *argv[])
     printf("Finished mocking data.\n");
 
     // close queue
-    if (mq_close(mqd) == -1) {
-        perror("mq_close failed");
-    } else {
-        printf("Message queue %s closed.\n", MQ_NAME);
-    }
+    // if (mq_close(mqd) == -1) {
+    //     perror("mq_close failed");
+    // } else {
+    //     printf("Message queue %s closed.\n", MQ_NAME);
+    // }
 
     // if (mq_unlink(MQ_NAME) == -1) {
     //     perror("mq_unlink failed");
     // } else {
     //     printf("Message queue %s unlinked.\\n", MQ_NAME);
     // }
+
+    close(sock);
     
     return 0;
 }

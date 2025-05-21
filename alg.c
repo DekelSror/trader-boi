@@ -1,15 +1,12 @@
 #include <stdio.h>
-#include <mqueue.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
 
 #include "market_data.h"
 #include "utils.h"
-
-#define MQ_NAME "/parsed_market_data"
-#define MQ_MAX_MSG_SIZE sizeof(parsed_message_t)
-
-static mqd_t mq = -1;
 
 double balance = 1000.0;
 
@@ -53,10 +50,25 @@ int load_algs()
 
 int main()
 {
-    mq = mq_open(MQ_NAME, O_RDONLY);
-    if (mq == (mqd_t)-1) {
-        fprintf(stderr, "Failed to open message queue: %s\n", strerror(errno));
-        fprintf(stderr, "Make sure market_data_processor is running first\n");
+    struct sockaddr_un server_addr = 
+    {
+        .sun_family = AF_UNIX,
+        .sun_path = "/tmp/trader-boi-comm",
+    };
+
+    int sock = socket(AF_UNIX, SOCK_DGRAM, 0);
+    if (sock < 0)
+    {
+        perror("socket failed");
+        return 1;
+    }
+
+    unlink(server_addr.sun_path);
+
+    if (bind(sock, (const struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
+    {
+        fprintf(stderr, "Failed to bind socket: %s (path: %s)\n", strerror(errno), server_addr.sun_path);
+        close(sock);
         return 1;
     }
 
@@ -65,16 +77,13 @@ int main()
     load_algs();
 
     parsed_message_t pm;
-    unsigned int prio;
     ssize_t event_size;
-
     while (1)
     {
-        event_size = mq_receive(mq, (char*)&pm, MQ_MAX_MSG_SIZE, &prio);
-
+        event_size = recvfrom(sock, &pm, sizeof(pm), 0, NULL, NULL);
         if (event_size == -1)
         {
-            fprintf(stderr, "Error receiving from queue: %s\n", strerror(errno));
+            fprintf(stderr, "Error receiving message: %s\n", strerror(errno));
             break;
         }
         
@@ -92,7 +101,7 @@ int main()
         }
     }
 
-    mq_close(mq);
+    close(sock);
     printf("Strategy processor shut down\n");
     
     return 0;
