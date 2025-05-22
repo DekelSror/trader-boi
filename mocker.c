@@ -11,9 +11,7 @@
 
 #include "market_data.h" // trade_t, market_depth_t, parsed_message_t
 
-#define MQ_NAME "/parsed_market_data"
-#define MQ_MAX_MESSAGES 10
-#define MQ_MAX_MSG_SIZE sizeof(parsed_message_t)
+#define SOCKET_PATH "/tmp/trader-boi-comm"
 
 typedef struct
 {
@@ -101,10 +99,43 @@ int main(int argc, char const *argv[])
     struct sockaddr_un server_addr = 
     {
         .sun_family = AF_UNIX,
-        .sun_path = "/tmp/trader-boi-comm",
+        .sun_path = SOCKET_PATH,
     };
 
-    int sock = socket(AF_UNIX, SOCK_DGRAM, 0);
+    int server_sock = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (server_sock < 0) {
+        perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
+
+    unlink(server_addr.sun_path);
+
+    if (bind(server_sock, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+        perror("bind failed");
+        close(server_sock);
+        exit(EXIT_FAILURE);
+    }
+
+    if (listen(server_sock, 5) < 0) {
+        perror("listen failed");
+        close(server_sock);
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Market data server started on %s. Waiting for clients...\n", SOCKET_PATH);
+
+    int client_sock;
+    struct sockaddr_un client_addr;
+    socklen_t client_len = sizeof(client_addr);
+    
+    client_sock = accept(server_sock, (struct sockaddr*)&client_addr, &client_len);
+    if (client_sock < 0) {
+        perror("accept failed");
+        close(server_sock);
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Client connected. Starting data feed...\n");
 
     mocker_t aaa_mocker = {
         .current_price = 100,
@@ -126,8 +157,6 @@ int main(int argc, char const *argv[])
 
     ssize_t dbg = -1;
 
-    getc(stdin);
-
     while (mock_size--)
     {
         tick(&aaa_mocker);
@@ -138,34 +167,29 @@ int main(int argc, char const *argv[])
         parsed_message_t aaa_msg = create_trade(aaa_mocker, ts);
         trade_print(aaa_msg);
 
-        dbg = sendto(sock, &aaa_msg, sizeof(aaa_msg), 0, (const struct sockaddr *)&server_addr, sizeof(server_addr));
+        dbg = send(client_sock, &aaa_msg, sizeof(aaa_msg), 0);
+        if (dbg < 0) {
+            perror("send failed for AAA message");
+            break;
+        }
         
-
         parsed_message_t bbb_msg = create_trade(bbb_mocker, ts);
         trade_print(bbb_msg);
         
-        dbg = sendto(sock, &bbb_msg, sizeof(bbb_msg), 0, (const struct sockaddr *)&server_addr, sizeof(server_addr));
+        dbg = send(client_sock, &bbb_msg, sizeof(bbb_msg), 0);
+        if (dbg < 0) {
+            perror("send failed for BBB message");
+            break;
+        }
         
         const struct timespec nsleeptime = {.tv_nsec=100000000};
         nanosleep(&nsleeptime, NULL);
     }
 
     printf("Finished mocking data.\n");
-
-    // close queue
-    // if (mq_close(mqd) == -1) {
-    //     perror("mq_close failed");
-    // } else {
-    //     printf("Message queue %s closed.\n", MQ_NAME);
-    // }
-
-    // if (mq_unlink(MQ_NAME) == -1) {
-    //     perror("mq_unlink failed");
-    // } else {
-    //     printf("Message queue %s unlinked.\\n", MQ_NAME);
-    // }
-
-    close(sock);
+    close(client_sock);
+    close(server_sock);
+    unlink(SOCKET_PATH);  // Clean up socket file
     
     return 0;
 }

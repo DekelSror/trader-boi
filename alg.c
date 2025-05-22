@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <unistd.h>
 
+#include "socket_provider.h"
 #include "market_data.h"
 #include "utils.h"
+
 
 double balance = 1000.0;
 
@@ -50,40 +49,25 @@ int load_algs()
 
 int main()
 {
-    struct sockaddr_un server_addr = 
-    {
-        .sun_family = AF_UNIX,
-        .sun_path = "/tmp/trader-boi-comm",
-    };
+    int sock = SocketProviderAPI.connect();
 
-    int sock = socket(AF_UNIX, SOCK_DGRAM, 0);
-    if (sock < 0)
-    {
-        perror("socket failed");
-        return 1;
-    }
-
-    unlink(server_addr.sun_path);
-
-    if (bind(sock, (const struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
-    {
-        fprintf(stderr, "Failed to bind socket: %s (path: %s)\n", strerror(errno), server_addr.sun_path);
-        close(sock);
-        return 1;
-    }
-
-    printf("Strategy processor started. Press Ctrl+C to exit.\n");
+    printf("Connected to market data server. Starting algorithm...\n");
 
     load_algs();
 
     parsed_message_t pm;
-    ssize_t event_size;
     while (1)
     {
-        event_size = recvfrom(sock, &pm, sizeof(pm), 0, NULL, NULL);
+        int event_size = SocketProviderAPI.get_msg(&pm);
         if (event_size == -1)
         {
             fprintf(stderr, "Error receiving message: %s\n", strerror(errno));
+            break;
+        }
+        
+        // If we get 0 bytes, the server has closed the connection
+        if (event_size == 0) {
+            printf("Market data server disconnected.\n");
             break;
         }
         
@@ -91,7 +75,7 @@ int main()
         {
             if (pm.type < 2)
             {
-                // send event to aggregators and the such
+                // Process the market data with our algorithms
                 alg1_handlers[pm.type](&pm.event);
             }
             else
@@ -101,8 +85,7 @@ int main()
         }
     }
 
-    close(sock);
-    printf("Strategy processor shut down\n");
+    SocketProviderAPI.disconnect();
     
     return 0;
 }
