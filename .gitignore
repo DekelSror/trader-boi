@@ -3,4 +3,5 @@
 !README.md
 !*.c
 !*.h
+!*.json
 !Makefile

@@ -42,4 +42,15 @@ typedef struct
     } event;
 } parsed_message_t;
 
+
+typedef struct
+{
+    double open;
+    double close;
+    double high;
+    double low;
+    long timestamp;
+    char symbol[8];
+} ohlc_t;
+
 #endif // market_data_h 

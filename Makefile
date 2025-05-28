@@ -1,29 +1,30 @@
 CC=gcc
 CFLAGS=-Wall -Wextra -g -std=gnu2x
 
-# PARSER_OBJS=market_data_processor_single.o nx_parsers.o config_utils.o print_utils.o
 ALG_OBJS=alg.o socket_provider.o
+CLIENT_OBJS=client.o simple_timeseries.o socket_provider.o candle_agg.o
+MOCKER_OBJS=mocker.o socket_provider.o
 
-# PARSER=market_data_processor
-ALG=strategy_processor
-MOCKER=mocker
+ALG=alg.out
+MOCKER=mocker.out
+CLIENT=client.out
 
-all: $(ALG) $(MOCKER)
+all: $(MOCKER) $(CLIENT) $(ALG)
 
-# $(PARSER): $(PARSER_OBJS)
-	# $(CC) $(CFLAGS) -o $@ $^
-
-$(ALG): $(ALG_OBJS)
+$(MOCKER): $(MOCKER_OBJS)
 	$(CC) $(CFLAGS) -o $@ $^
 
-$(MOCKER): mocker.o socket_provider.o
+$(CLIENT): $(CLIENT_OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
+
+$(ALG): $(ALG_OBJS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(ALG) $(MOCKER) *.o
+	rm -f *.out *.o
 
 
-.PHONY: all clean run-parser run-alg 
+.PHONY: all clean
