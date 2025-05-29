@@ -1,4 +1,7 @@
 #include <time.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "socket_provider.h"
 #include "remote_provider.h"
@@ -12,18 +15,21 @@ timeseries_api_t tsdb;
 ts_iterator_api_t ts_iter;
 
 
-ohlc_t aaa_5m_candles[128] = {0};
-int num_aaa_5m_candles = 0;
+typedef struct
+{
+    int size;
+    ohlc_t data[];
+} candle_shmap_t;
+
+
+
+candle_shmap_t* candles = NULL;
+const char* candles_path = "candles_AAA_5M";
 
 int post_aaa_5m_candle(ohlc_t entry)
 {
-    if (num_aaa_5m_candles == 128)
-    {
-        return 1;
-    }
-
-    memmove(aaa_5m_candles + num_aaa_5m_candles, &entry, sizeof(entry));
-    num_aaa_5m_candles++;
+    memmove(candles->data + candles->size, &entry, sizeof(ohlc_t));
+    candles->size++;
     return 0;
 }
 
@@ -32,6 +38,18 @@ int main()
     provider = SocketProviderAPI;
     tsdb = ShMapTimeseries;
     ts_iter = ShMapTsIterator;
+
+    size_t shmap_size = sizeof(ohlc_t) * 4096 + sizeof(candle_shmap_t);
+    int fd = open(candles_path, O_CREAT | O_RDWR, 0644);
+    // circumvent bus error (because screw ftruncate)
+    lseek(fd, shmap_size - 1, SEEK_SET);
+    write(fd, "!", 1);
+    lseek(fd, shmap_size - 1, SEEK_SET);
+    write(fd, "\0", 1);
+    lseek(fd, 4, SEEK_SET);
+
+    candles = mmap(NULL, shmap_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    close(fd);
     candle_agg_t candle_agg = agg_init(1000000 * 60 * 5, post_aaa_5m_candle);
 
     tsdb.create("AAA");
@@ -68,9 +86,9 @@ int main()
 
     provider.disconnect();
 
-    for (int i = 0; i < num_aaa_5m_candles; i++)
+    for (int i = 0; i < candles->size; i++)
     {
-        ohlc_t candle = aaa_5m_candles[i];
+        ohlc_t candle = candles->data[i];
         time_t seconds = candle.timestamp / 1000000;
         int microseconds = candle.timestamp % 1000000;
         struct tm* tm_info = localtime(&seconds);

@@ -43,8 +43,14 @@ static int create(const char* name)
     char path[12];
     sprintf(path, "shmap_ts_%02d", num_series);
     int fd = open(path, O_RDWR | O_CREAT, 0644);
+    
+    // circumvent bus error (because screw ftruncate)
     lseek(fd, sizeof(ts_entry_t) * 4096 - 1, SEEK_SET);
     write(fd, "!", 1);
+    lseek(fd, sizeof(ts_entry_t) * 4096 - 1, SEEK_SET);
+    write(fd, "\0", 1);
+    lseek(fd, 0, SEEK_SET);
+    
     memmove(db[num_series].name, name, 128);
     db[num_series].mem = mmap(NULL, sizeof(ts_entry_t) * 4096, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0);
     close(fd);
@@ -84,7 +90,6 @@ static void* frame_by_index(const char* name, long start, long end)
 
     if (i == -1)
         return NULL;
-    
 
     shmap_ts_iterator_t* iter = malloc(sizeof(*iter));
 
