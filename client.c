@@ -3,7 +3,7 @@
 #include "socket_provider.h"
 #include "remote_provider.h"
 #include "timeseries.h"
-#include "simple_timeseries.h"
+#include "shmap_ts.h"
 #include "utils.h"
 #include "candle_agg.h"
 
@@ -30,8 +30,8 @@ int post_aaa_5m_candle(ohlc_t entry)
 int main()
 {
     provider = SocketProviderAPI;
-    tsdb = SimpleTimeseries;
-    ts_iter = SimpleTimeseriesIterator;
+    tsdb = ShMapTimeseries;
+    ts_iter = ShMapTsIterator;
     candle_agg_t candle_agg = agg_init(1000000 * 60 * 5, post_aaa_5m_candle);
 
     tsdb.create("AAA");

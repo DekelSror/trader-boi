@@ -3,7 +3,6 @@
 
 #include "timeseries.h"
 
-// localdefine
 #define MAX_SERIES (4)
 
 extern const timeseries_api_t SimpleTimeseries;

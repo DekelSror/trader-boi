@@ -39,7 +39,7 @@ static int create(const char* name)
 static int series_index_by_name(const char* name)
 {
     int i = 0;
-    for (; i < MAX_SERIES; i++)
+    for (; i < next_series; i++)
     {
         if (strneq(series_names[i], name, 1024))
         {
@@ -47,7 +47,7 @@ static int series_index_by_name(const char* name)
         }
     }
 
-    if (i == MAX_SERIES) return -1;
+    if (i == next_series + 1) return -1;
 
     return i;
     
