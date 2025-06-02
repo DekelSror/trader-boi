@@ -4,7 +4,8 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include "socket_provider.h"
+#include "remote_provider.h"
+
 
 #define SOCKET_PATH "/tmp/trader-boi-comm"
 

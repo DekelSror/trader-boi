@@ -22,4 +22,10 @@ typedef struct
 } ts_iterator_api_t;
 
 
+extern const timeseries_api_t ShMapTimeseries;
+extern const ts_iterator_api_t ShMapTsIterator;
+
+extern const timeseries_api_t SimpleTimeseries;
+extern const ts_iterator_api_t SimpleTimeseriesIterator;
+
 #endif // timeseries_h

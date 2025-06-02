@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-Wall -Wextra -g -std=gnu2x
 
 ALG_OBJS=alg.o socket_provider.o
-CLIENT_OBJS=client.o shmap_ts.o socket_provider.o candle_agg.o
+CLIENT_OBJS=client.o shmap_ts.o socket_provider.o candle_agg.o shmap.o
 MOCKER_OBJS=mocker.o socket_provider.o
 
 ALG=alg.out

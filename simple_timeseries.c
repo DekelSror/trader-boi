@@ -4,7 +4,10 @@
 #include <sys/time.h>
 
 #include "utils.h"
-#include "simple_timeseries.h"
+#include "timeseries.h"
+
+#define MAX_SERIES (4)
+
 
 
 static int next_series = 0;

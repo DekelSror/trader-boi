@@ -4,7 +4,7 @@
         "description": "Trading strategy that enters on breakouts after specific three-candle patterns",
         "version": "1.0",
         "user_config": {
-            "symbol": "EURUSD",
+            "symbol": "AAA",
             "lot_size": 0.1,
             "trading_hours": {"start": 8, "end": 13},
             "ema_period": 10
@@ -20,21 +20,14 @@
                 "value": 0.1
             }
         },
-        "inputs": [
+        "aggregates": ["candles_AAA_5M"],
+        "calculations": [
             {
-                "name": "candles",
-                "type": "candlestick",
-                "params": {"frequency": "5M"}
-
-            },
-            {
-                "name": "ema",
-                "type": "moving_average",
-                "params": {
-                    "target": "close",
-                    "period": ["input", "ema_period"],
-                    "method": "exponential"
-                }
+                "name": "moving_avg",
+                "type": "exponential",
+                "by": "trade",
+                "period": "10",
+                "symbol": "AAA"
             }
         ],
         "rules": [

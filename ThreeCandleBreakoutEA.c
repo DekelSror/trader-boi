@@ -4,6 +4,7 @@
 
 #include "utils.h"
 #include "market_data.h"
+#include "shmap.h"
 
 typedef struct
 {
@@ -12,29 +13,35 @@ typedef struct
 } candle_shmap_t;
 
 
-void* get_agg(const char* agg_name)
-{
-    int fd = open(agg_name, O_RDONLY, 0400);
-    void* agg = mmap(NULL, 4096, PROT_READ, MAP_SHARED, fd, 0);
-    close(fd);
-
-    return agg;
-}
-
-
 candle_shmap_t* candles = NULL;
-int window_start = 0;
+
+double ema_10_trades = 0;
+int ema_initialized = 0;
+double alpha = 2.0 / (10 + 1.0);
+
 
 void init()
 {
-    candles = get_agg("candles_AAA_5M");
+    candles = shmap_reader("candles_AAA_5M");
 }
 
-void on_trade()
+void on_trade(trade_t trade)
 {
+    if (!strneq("AAA", trade.symbol, 3))
+        return;
+    
+    if (!ema_initialized)
+    {
+        ema_10_trades = trade.price;
+        ema_initialized = 1;
+    }
+    else
+        ema_10_trades = trade.price * alpha + ema_10_trades * (1.0 - alpha);
+    
     if (candles->size < 3)
         return;
     
+
     outl("three candles breakout EA boiiiii");
     ohlc_t c1 = candles->data[candles->size - 1];
     ohlc_t c2 = candles->data[candles->size - 2];
@@ -51,25 +58,18 @@ void on_trade()
         c3.close < c3.open &&
         c2.close < c2.open &&
         c1.close > c1.open &&
-        c1.close > max_c2_c3_hi;
-        
+        c1.close > max_c2_c3_hi &&
+        c1.close > ema_10_trades;
+
     int sell_condition = 
         c3.close > c3.open &&
         c2.close > c2.open &&
         c1.close < c1.open &&
-        c1.close < min_c2_c3_lo;
+        c1.close < min_c2_c3_lo &&
+        c1.close < ema_10_trades;
 
     if (buy_condition)
         outl("gonna buy!!");
     if (sell_condition)
         outl("gonna sell!");
 }
-
-
-int main()
-{
-    init();
-    on_trade();
-    return 0;
-}
-

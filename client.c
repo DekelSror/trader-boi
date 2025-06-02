@@ -2,12 +2,12 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <dlfcn.h>
 
-#include "socket_provider.h"
 #include "remote_provider.h"
 #include "timeseries.h"
-#include "shmap_ts.h"
 #include "utils.h"
+#include "shmap.h"
 #include "candle_agg.h"
 
 remote_provider_api_t provider;
@@ -22,9 +22,9 @@ typedef struct
 } candle_shmap_t;
 
 
-
 candle_shmap_t* candles = NULL;
 const char* candles_path = "candles_AAA_5M";
+
 
 int post_aaa_5m_candle(ohlc_t entry)
 {
@@ -33,29 +33,31 @@ int post_aaa_5m_candle(ohlc_t entry)
     return 0;
 }
 
+const char* algos[] = {
+    "./ThreeCandleBreakoutEA.so"
+};
+
 int main()
 {
     provider = SocketProviderAPI;
     tsdb = ShMapTimeseries;
     ts_iter = ShMapTsIterator;
 
-    size_t shmap_size = sizeof(ohlc_t) * 4096 + sizeof(candle_shmap_t);
-    int fd = open(candles_path, O_CREAT | O_RDWR, 0644);
-    // circumvent bus error (because screw ftruncate)
-    lseek(fd, shmap_size - 1, SEEK_SET);
-    write(fd, "!", 1);
-    lseek(fd, shmap_size - 1, SEEK_SET);
-    write(fd, "\0", 1);
-    lseek(fd, 4, SEEK_SET);
 
-    candles = mmap(NULL, shmap_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    close(fd);
-    candle_agg_t candle_agg = agg_init(1000000 * 60 * 5, post_aaa_5m_candle);
+    candles = shmap_create(candles_path, sizeof(ohlc_t) * 4096 + sizeof(candle_shmap_t));
+    candles->size = 0;
+    candle_agg_t candle_agg = candle_agg_init("AAA", 1000000 * 60 * 5, post_aaa_5m_candle);
 
     tsdb.create("AAA");
     tsdb.create("BBB");
 
+    void* alg_module = dlopen(algos[0], RTLD_NOW);
+    void(*alg_init)() = dlsym(alg_module, "init");
+    void(*alg_on_trade)(trade_t) = dlsym(alg_module, "on_trade");
+    
+
     provider.connect();
+    alg_init();
 
     parsed_message_t msg;
     while (1)
@@ -72,8 +74,10 @@ int main()
             trade_t trade = msg.event.trade;
 
             int err = tsdb.add(trade.symbol, trade.timestamp, trade.price);
-            outl("got %s %ld %lf %d", trade.symbol, trade.timestamp, trade.price, err);
-            agg_on_trade(&candle_agg, trade);
+            // outl("got %s %ld %lf (err %d)", trade.symbol, trade.timestamp, trade.price, err);
+            candle_agg_on_trade(&candle_agg, trade);
+            alg_on_trade(trade);
+
         }
     }
 

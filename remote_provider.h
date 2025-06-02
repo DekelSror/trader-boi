@@ -10,5 +10,6 @@ typedef struct
     int(*disconnect)();
 } remote_provider_api_t;
 
+extern const remote_provider_api_t SocketProviderAPI;
 
 #endif // remote_provider_h
