@@ -27,8 +27,12 @@ class ShmapTimeseries(Timeseries):
             points = [points]
         for ts, val in points:
             if self.count >= self.max_entries:
-                # self.mm.resize()
-                raise RuntimeError("Shared memory full")
+                try:
+                    self.size += DEFAULT_MAX_ENTRIES * ENTRY_SIZE
+                    self.mm.resize(self.size)
+                    self.max_entries += DEFAULT_MAX_ENTRIES
+                except Exception as e:
+                    raise RuntimeError("Cannot make more of these!")
             offset = self.count * ENTRY_SIZE
             self.mm[offset:offset+ENTRY_SIZE] = struct.pack("q d", ts, val)
             self.count += 1

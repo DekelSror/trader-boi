@@ -5,7 +5,7 @@ class MemoryTimeseries(Timeseries):
     def __init__(self):
         self.points = []
 
-    def write_points(self, points: tuple[int, float] | list[tuple[int, float]]) -> bool:
+    def write_points(self, points) -> bool:
         if not isinstance(points, list):
             points = [points]
         self.points.extend(points)
