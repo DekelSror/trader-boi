@@ -7,5 +7,5 @@ from market_types import Trade
 
 
 class Algo(ABC):
-    def on_trade(self, trade: Trade) -> None:
+    def on_trade(self, trade: Trade) -> str | None:
         pass

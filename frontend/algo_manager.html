@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Algorithm Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Algorithm Manager</h1>
+    <div id="status" class="disconnected">Checking connection...</div>
+    
+    <div id="algoContainer">
+        <!-- Algorithms will be dynamically inserted here -->
+    </div>
+
+    <template id="algoTemplate">
+        <div class="algo-section">
+            <h2 class="algo-name"></h2>
+            <div class="algo-controls">
+                <span class="algo-status"></span>
+                <button class="stop">Stop</button>
+                <button class="restart">Restart</button>
+            </div>
+            <table class="action-log">
+                <thead>
+                    <tr>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </template>
+
+    <script>
+        const algoContainer = document.getElementById('algoContainer');
+        const algoTemplate = document.getElementById('algoTemplate');
+        const status = document.getElementById('status');
+
+        async function checkConnection() {
+            try {
+                const response = await fetch('http://localhost:13000/api/algos');
+                if (response.ok) {
+                    status.textContent = 'Connected';
+                    status.className = 'connected';
+                } else {
+                    throw new Error('API error');
+                }
+            } catch (error) {
+                status.textContent = 'Disconnected - Retrying...';
+                status.className = 'disconnected';
+            }
+        }
+
+        function formatTimestamp(timestamp) {
+            return new Date(timestamp * 1000).toLocaleTimeString();
+        }
+
+        function formatDetails(details) {
+            return Object.entries(details)
+                .map(([key, value]) => `${key}: ${value}`)
+                .join(', ');
+        }
+
+        async function updateAlgos() {
+            try {
+                const response = await fetch('http://localhost:13000/api/algos');
+                if (!response.ok) {
+                    throw new Error('API error');
+                }
+                const algos = await response.json();
+                
+                // Clear existing content
+                algoContainer.innerHTML = '';
+                
+                algos.forEach(algo => {
+                    const algoElement = algoTemplate.content.cloneNode(true);
+                    const section = algoElement.querySelector('.algo-section');
+                    
+                    // Set algorithm name and status
+                    section.querySelector('.algo-name').textContent = algo.module_name;
+                    const statusElement = section.querySelector('.algo-status');
+                    statusElement.textContent = algo.state.toUpperCase();
+                    statusElement.className = `algo-status ${algo.state.toLowerCase()}`;
+                    
+                    // Setup control buttons
+                    const stopBtn = section.querySelector('.stop');
+                    const restartBtn = section.querySelector('.restart');
+                    
+                    stopBtn.onclick = async () => {
+                        await fetch(`http://localhost:13000/api/algos/${algo.module_name}/stop`, {
+                            method: 'POST'
+                        });
+                        updateAlgos();
+                    };
+                    
+                    restartBtn.onclick = async () => {
+                        await fetch(`http://localhost:13000/api/algos/${algo.module_name}/restart`, {
+                            method: 'POST'
+                        });
+                        updateAlgos();
+                    };
+                    
+                    // Populate action log
+                    const tbody = section.querySelector('tbody');
+                    algo.actions.forEach(action => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${action}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                    
+                    algoContainer.appendChild(section);
+                });
+            } catch (error) {
+                console.error('Error updating algos:', error);
+                status.textContent = 'Disconnected - Retrying...';
+                status.className = 'disconnected';
+            }
+        }
+
+        // Check connection status and update algos every second
+        setInterval(async () => {
+            await checkConnection();
+            await updateAlgos();
+        }, 1000);
+    </script>
+</body>
+</html> 

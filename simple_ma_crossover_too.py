@@ -15,14 +15,14 @@ class Algorithm(Algo):
     """
     Simple Moving Average Crossover Algorithm
     """
-    
+
     def __init__(self):
         print(f'I am {__file__}!')
         self.symbol = "AAA"
         self.short_window = 5
         self.long_window = 20
         self.interval_seconds = 300
-        
+
         # Initialize price queues
         self.short_prices = deque(maxlen=self.short_window)
         self.long_prices = deque(maxlen=self.long_window)

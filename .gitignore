@@ -1,7 +1,3 @@
-*
-!.gitignore
-!README.md
-!**/*.py
-!**/*.py
-!*.c
-!*.h
+__pycache__
+.vscode
+venv*

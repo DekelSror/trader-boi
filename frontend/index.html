@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trade Monitor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Trade Monitor</h1>
+    <div id="status" class="disconnected">Disconnected</div>
+    <table id="trades">
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Price</th>
+                <th>Volume</th>
+                <th>Condition</th>
+            </tr>
+        </thead>
+        <tbody id="tradesBody">
+        </tbody>
+    </table>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:12000');
+        const tradesBody = document.getElementById('tradesBody');
+        const status = document.getElementById('status');
+        const maxRows = 100;  // Maximum number of rows to show
+
+        ws.onopen = () => {
+            status.textContent = 'Connected';
+            status.className = 'connected';
+        };
+
+        ws.onclose = () => {
+            status.textContent = 'Disconnected';
+            status.className = 'disconnected';
+        };
+
+        ws.onmessage = (event) => {
+            const trade = JSON.parse(event.data);
+            
+            // Create new row
+            const row = document.createElement('tr');
+            
+            // Format timestamp
+            const date = new Date(trade.timestamp * 1000);
+            const timeStr = date.toLocaleTimeString();
+            
+            // Add cells
+            row.innerHTML = `
+                <td>${timeStr}</td>
+                <td>${trade.symbol}</td>
+                <td class="${trade.side.toLowerCase()}">${trade.side}</td>
+                <td>${trade.price.toFixed(2)}</td>
+                <td>${trade.volume}</td>
+                <td>${trade.condition}</td>
+            `;
+            
+            // Insert at top
+            tradesBody.insertBefore(row, tradesBody.firstChild);
+            
+            // Remove old rows if we exceed maxRows
+            while (tradesBody.children.length > maxRows) {
+                tradesBody.removeChild(tradesBody.lastChild);
+            }
+        };
+
+        // Attempt to reconnect on disconnect
+        ws.onclose = () => {
+            status.textContent = 'Disconnected - Reconnecting...';
+            status.className = 'disconnected';
+            setTimeout(() => {
+                window.location.reload();
+            }, 5000);
+        };
+    </script>
+</body>
+</html> 
