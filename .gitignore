@@ -2,5 +2,6 @@
 !.gitignore
 !README.md
 !**/*.py
+!**/*.py
 !*.c
 !*.h
