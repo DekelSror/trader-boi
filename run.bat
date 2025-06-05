@@ -10,21 +10,21 @@ if errorlevel 1 (
 )
 
 :: Create and activate virtual environment
-if not exist venv (
+if not exist venv-3.12 (
     echo Creating virtual environment...
-    python3.12 -m venv venv
+    python3.12 -m venv venv-3.12
 )
 
 :: Function to start a component in a new terminal
 :start_component
-start "Activating venv" cmd /c "cd /d %CD% && venv\Scripts\activate.bat && python %~1 && pause"
+start "Activating venv" cmd /c "cd /d %CD% && venv-3.12\Scripts\activate.bat && python %~1 && pause"
 exit /b
 
 :: Main execution
 echo Setting up trader-boi environment (Windows)...
 
 :: Activate venv in current window
-call venv\Scripts\activate.bat
+call venv-3.12\Scripts\activate.bat
 
 :: Install requirements
 echo Installing requirements...

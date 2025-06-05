@@ -11,11 +11,11 @@ check_python() {
 
 # Function to create and activate virtual environment
 setup_venv() {
-    if [ ! -d "venv" ]; then
+    if [ ! -d "venv-3.12" ]; then
         echo "Creating virtual environment..."
-        python3.12 -m venv venv
+        python3.12 -m venv venv-3.12
     fi
-    source venv/bin/activate
+    source venv-3.12/bin/activate
 }
 
 # Function to install requirements
@@ -30,11 +30,11 @@ start_component() {
     local command=$2
     
     if command -v gnome-terminal &> /dev/null; then
-        gnome-terminal --title="$component" -- bash -c "source venv/bin/activate && $command; exec bash"
+        gnome-terminal --title="$component" -- bash -c "source venv-3.12/bin/activate && $command; exec bash"
     elif command -v xterm &> /dev/null; then
-        xterm -T "$component" -e "bash -c 'source venv/bin/activate && $command; exec bash'" &
+        xterm -T "$component" -e "bash -c 'source venv-3.12/bin/activate && $command; exec bash'" &
     elif command -v konsole &> /dev/null; then
-        konsole --new-tab -p tabtitle="$component" -e "bash -c 'source venv/bin/activate && $command; exec bash'" &
+        konsole --new-tab -p tabtitle="$component" -e "bash -c 'source venv-3.12/bin/activate && $command; exec bash'" &
     else
         echo "No supported terminal emulator found. Please install gnome-terminal, xterm, or konsole."
         exit 1

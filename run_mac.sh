@@ -11,11 +11,11 @@ check_python() {
 
 # Function to create and activate virtual environment
 setup_venv() {
-    if [ ! -d "venv" ]; then
+    if [ ! -d "venv-3.12" ]; then
         echo "Creating virtual environment..."
-        python3.12 -m venv venv
+        python3.12 -m venv venv-3.12
     fi
-    source venv/bin/activate
+    source venv-3.12/bin/activate
 }
 
 # Function to install requirements
@@ -31,7 +31,7 @@ start_component() {
     
     # Using osascript to open new Terminal windows
     osascript -e "tell application \"Terminal\"
-        do script \"cd $(pwd) && source venv/bin/activate && $command\"
+        do script \"cd $(pwd) && source venv-3.12/bin/activate && $command\"
         set custom title of front window to \"$component\"
     end tell"
 }
