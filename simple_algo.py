@@ -1,22 +1,25 @@
 from algo import Algo
+from cooldown import Cooldown
 
 class Algorithm(Algo):
     def __init__(self) -> None:
-        super().__init__()
-        self.last_action = 0
-        self.action_interval = 300
+        # initialize params
+        self.cooldown = Cooldown(120)
+        # get aggregations
 
     def on_trade(self, trade):
-        if trade.timestamp < self.action_interval + self.last_action:
+        # prerequisites
+        if self.cooldown.still():
             return None
 
-        print(f'{self.last_action=} {trade.timestamp=}')
+        # rules
+        action = None
         if trade.price > 700:
-            self.last_action = trade.timestamp
-            return 'BUY'
+            action = 'SELL'
         elif trade.price < 400:
-            self.last_action = trade.timestamp
-            return 'SELL'
-        
-        return None
+            action = 'BUY'
+
+        if action:
+            self.cooldown.reset()
+        return action
     

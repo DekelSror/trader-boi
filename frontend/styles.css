@@ -2,6 +2,9 @@ body {
     font-family: Arial, sans-serif;
     margin: 20px;
     background-color: #f0f0f0;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
 }
 
 table {
@@ -85,4 +88,74 @@ button.stop {
 
 button.restart {
     background-color: #ff9800;
+}
+
+/* Algorithm Builder Styles */
+.section {
+    border: 1px solid #ccc;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 5px;
+    background: white;
+}
+
+.section h2 {
+    margin-top: 0;
+    color: #333;
+}
+
+.param-row, .rule-row {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0;
+    align-items: center;
+}
+
+.rule-conditions {
+    margin-left: 20px;
+    padding: 10px;
+    border-left: 2px solid #eee;
+}
+
+.remove-btn {
+    color: #f44336;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0 5px;
+}
+
+#preview {
+    background: #f5f5f5;
+    padding: 10px;
+    white-space: pre;
+    font-family: monospace;
+    border-radius: 4px;
+}
+
+select, input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.condition {
+    display: flex;
+    gap: 10px;
+    margin: 5px 0;
+    align-items: center;
+}
+
+.submit-btn {
+    margin-top: 20px;
+    background-color: #2196F3;
+    font-size: 16px;
+    padding: 10px 20px;
+}
+
+label {
+    min-width: 120px;
+    font-weight: bold;
 } 

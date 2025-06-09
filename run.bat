@@ -41,7 +41,7 @@ timeout /t 2 > nul
 
 :: Open frontend in default browser
 echo Opening frontend...
-start "" "frontend\index.html"
+start "" "frontend\algo_builder.html"
 start "" "frontend\algo_manager.html"
 
 echo All components started!

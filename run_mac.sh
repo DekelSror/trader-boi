@@ -38,7 +38,7 @@ start_component() {
 
 # Function to open HTML files in browser
 open_frontend() {
-    open "frontend/index.html"
+    open "frontend/algo_builder.html"
     open "frontend/algo_manager.html"
 }
 

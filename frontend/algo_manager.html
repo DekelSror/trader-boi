@@ -3,18 +3,60 @@
 <head>
     <title>Algorithm Manager</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Tab styles */
+        .tab-container {
+            margin-top: 20px;
+        }
+        .tab-nav {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            background: #f5f5f5;
+            cursor: pointer;
+            border-radius: 4px 4px 0 0;
+            color: #333;
+            font-weight: 500;
+        }
+        .tab-button:hover {
+            background: #e9e9e9;
+        }
+        .tab-button.active {
+            background: white;
+            border-bottom: 2px solid #4CAF50;
+            margin-bottom: -1px;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
 </head>
 <body>
     <h1>Algorithm Manager</h1>
     <div id="status" class="disconnected">Checking connection...</div>
     
-    <div id="algoContainer">
-        <!-- Algorithms will be dynamically inserted here -->
+    <div id="algoContainer" class="tab-container">
+        <div class="tab-nav">
+            <!-- Tab buttons will be dynamically inserted here -->
+        </div>
+        <div class="tab-content-container">
+            <!-- Tab contents will be dynamically inserted here -->
+        </div>
     </div>
 
     <template id="algoTemplate">
         <div class="algo-section">
-            <h2 class="algo-name"></h2>
             <div class="algo-controls">
                 <span class="algo-status"></span>
                 <button class="stop">Stop</button>
@@ -36,6 +78,20 @@
         const algoContainer = document.getElementById('algoContainer');
         const algoTemplate = document.getElementById('algoTemplate');
         const status = document.getElementById('status');
+        const tabNav = algoContainer.querySelector('.tab-nav');
+        const tabContentContainer = algoContainer.querySelector('.tab-content-container');
+        let activeModuleName = null;
+
+        function switchTab(moduleName) {
+            activeModuleName = moduleName;
+            // Update active states
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.module === moduleName);
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.toggle('active', content.dataset.module === moduleName);
+            });
+        }
 
         async function checkConnection() {
             try {
@@ -70,15 +126,30 @@
                 }
                 const algos = await response.json();
                 
-                // Clear existing content
-                algoContainer.innerHTML = '';
+                // Clear existing tabs and content
+                tabNav.innerHTML = '';
+                tabContentContainer.innerHTML = '';
                 
-                algos.forEach(algo => {
+                // Create tabs and content for each algo
+                algos.forEach((algo, index) => {
+                    // Create tab button
+                    const tabButton = document.createElement('button');
+                    tabButton.className = 'tab-button';
+                    tabButton.textContent = algo.module_name;
+                    tabButton.dataset.module = algo.module_name;
+                    tabButton.onclick = () => switchTab(algo.module_name);
+                    tabNav.appendChild(tabButton);
+
+                    // Create tab content
+                    const tabContent = document.createElement('div');
+                    tabContent.className = 'tab-content';
+                    tabContent.dataset.module = algo.module_name;
+                    
+                    // Clone and populate algo content
                     const algoElement = algoTemplate.content.cloneNode(true);
                     const section = algoElement.querySelector('.algo-section');
                     
-                    // Set algorithm name and status
-                    section.querySelector('.algo-name').textContent = algo.module_name;
+                    // Set algorithm status
                     const statusElement = section.querySelector('.algo-status');
                     statusElement.textContent = algo.state.toUpperCase();
                     statusElement.className = `algo-status ${algo.state.toLowerCase()}`;
@@ -111,8 +182,24 @@
                         tbody.appendChild(row);
                     });
                     
-                    algoContainer.appendChild(section);
+                    tabContent.appendChild(section);
+                    tabContentContainer.appendChild(tabContent);
+
+                    // Activate first tab by default or maintain active tab
+                    if ((activeModuleName === null && index === 0) || algo.module_name === activeModuleName) {
+                        tabButton.classList.add('active');
+                        tabContent.classList.add('active');
+                        activeModuleName = algo.module_name;
+                    }
                 });
+
+                // If the active module no longer exists, switch to the first tab
+                if (activeModuleName && !algos.some(algo => algo.module_name === activeModuleName)) {
+                    activeModuleName = algos.length > 0 ? algos[0].module_name : null;
+                    if (activeModuleName) {
+                        switchTab(activeModuleName);
+                    }
+                }
             } catch (error) {
                 console.error('Error updating algos:', error);
                 status.textContent = 'Disconnected - Retrying...';
