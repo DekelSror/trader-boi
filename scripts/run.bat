@@ -26,6 +26,17 @@ echo Setting up trader-boi environment (Windows)...
 :: Activate venv in current window
 call venv-3.12\Scripts\activate.bat
 
+:: Verify required directories exist
+echo Verifying required directories...
+if not exist "algo_configs" (
+    echo Creating algo_configs directory...
+    mkdir "algo_configs"
+)
+if not exist "generated_algos" (
+    echo Creating generated_algos directory...
+    mkdir "generated_algos"
+)
+
 :: Install requirements
 echo Installing requirements...
 pip install -r requirements.txt
@@ -36,7 +47,7 @@ call :start_component mocker.py
 timeout /t 2 > nul
 call :start_component hub.py
 timeout /t 2 > nul
-call :start_component algo_ctl.py
+call :start_component backend.py
 timeout /t 2 > nul
 
 :: Open frontend in default browser

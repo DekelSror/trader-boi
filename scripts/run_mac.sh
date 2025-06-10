@@ -54,14 +54,17 @@ setup_venv
 # Install requirements
 install_requirements
 
+mkdir -p generated_algos
+mkdir -p algo_configs
+
 # Start components
 echo "Starting components..."
 start_component "Mocker" "python mocker.py"
 sleep 2  # Wait for mocker to start
 start_component "Hub" "python hub.py"
 sleep 2  # Wait for hub to start
-start_component "Algo Controller" "python algo_ctl.py"
-sleep 2  # Wait for algo controller to start
+start_component "Backend" "python backend.py"
+sleep 2  # Wait for backend to start
 
 # Open frontend
 echo "Opening frontend..."

@@ -93,18 +93,12 @@ function addRule() {
 function gatherConfig() {
     const config = {
         title: document.getElementById('algoTitle').value,
-        import_params: {
-            algo_class: 'Algorithm',
-            path: `/home/dekel/src/trader-boi/${document.getElementById('moduleName').value}.py`,
-            module_name: document.getElementById('moduleName').value
-        },
         algo_params: {
             cooldown: parseInt(document.getElementById('cooldown').value)
         },
         rules: []
     };
 
-    // Gather rules
     const rulesDiv = document.getElementById('rules');
     rulesDiv.querySelectorAll('.param-row').forEach(ruleDiv => {
         const action = ruleDiv.querySelector('select').value;

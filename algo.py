@@ -1,11 +1,8 @@
 
 
-
-from abc import ABC
-
 from market_types import Trade
 
 
-class Algo(ABC):
+class Algo:
     def on_trade(self, trade: Trade) -> str | None:
         pass

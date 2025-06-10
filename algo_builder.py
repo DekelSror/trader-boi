@@ -1,11 +1,11 @@
-def generate_algo_code(config: dict) -> str:
+def generate_algo_code(config: dict, algo_class: str) -> str:
     """Generate algorithm code from a configuration dictionary"""
     
     # Start with imports
     code = [
         "from algo import Algo",
         "from cooldown import Cooldown\n",
-        "class Algorithm(Algo):",
+        f"class {algo_class}(Algo):",
         "    def __init__(self) -> None:",
         "        # initialize params",
     ]
@@ -61,8 +61,8 @@ def generate_algo_code(config: dict) -> str:
     
     return "\n".join(code)
 
-def build_algo_file(config: dict, output_path: str) -> None:
+def build_algo_file(config: dict, output_path: str, algo_class: str) -> None:
     """Build an algorithm file from a configuration dictionary"""
-    code = generate_algo_code(config)
+    code = generate_algo_code(config, algo_class)
     with open(output_path, 'w') as f:
         f.write(code)
