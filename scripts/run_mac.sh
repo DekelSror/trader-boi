@@ -36,12 +36,6 @@ start_component() {
     end tell"
 }
 
-# Function to open HTML files in browser
-open_frontend() {
-    open "frontend/algo_builder.html"
-    open "frontend/algo_manager.html"
-}
-
 # Main execution
 echo "Setting up trader-boi environment (macOS)..."
 
@@ -65,10 +59,6 @@ start_component "Hub" "python hub.py"
 sleep 2  # Wait for hub to start
 start_component "Backend" "python backend.py"
 sleep 2  # Wait for backend to start
-
-# Open frontend
-echo "Opening frontend..."
-open_frontend
 
 echo "All components started!"
 echo "To stop all components, close the terminal windows or press Ctrl+C in each one." 

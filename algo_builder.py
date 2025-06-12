@@ -1,6 +1,7 @@
-def generate_algo_code(config: dict, algo_class: str) -> str:
+def generate_algo_code(config: dict) -> str:
     """Generate algorithm code from a configuration dictionary"""
-    
+    # Infer class name from config['title']
+    algo_class = ''.join(config['title'].split(' '))
     # Start with imports
     code = [
         "from algo import Algo",
@@ -61,8 +62,8 @@ def generate_algo_code(config: dict, algo_class: str) -> str:
     
     return "\n".join(code)
 
-def build_algo_file(config: dict, output_path: str, algo_class: str) -> None:
+def build_algo_file(config: dict, output_path: str) -> None:
     """Build an algorithm file from a configuration dictionary"""
-    code = generate_algo_code(config, algo_class)
+    code = generate_algo_code(config)
     with open(output_path, 'w') as f:
         f.write(code)

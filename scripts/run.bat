@@ -50,11 +50,6 @@ timeout /t 2 > nul
 call :start_component backend.py
 timeout /t 2 > nul
 
-:: Open frontend in default browser
-echo Opening frontend...
-start "" "frontend\algo_builder.html"
-start "" "frontend\algo_manager.html"
-
 echo All components started!
 echo To stop all components, close the terminal windows or press Ctrl+C in each one.
 

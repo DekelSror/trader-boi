@@ -5,12 +5,12 @@ from time import time
 
 class Cooldown:
     def __init__(self, cooldown_seconds: int) -> None:
-        self.cd = cooldown_seconds
+        self.interval = cooldown_seconds
         self.last = 0.0
     
 
     def still(self) -> bool:
-        return time() <= self.last + self.cd
+        return time() <= self.last + self.interval
 
 
     def reset(self):

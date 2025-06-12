@@ -41,24 +41,6 @@ start_component() {
     fi
 }
 
-# Function to open HTML files in browser
-open_frontend() {
-    if command -v xdg-open &> /dev/null; then
-        xdg-open "frontend/algo_builder.html"
-        xdg-open "frontend/algo_manager.html"
-    elif command -v firefox &> /dev/null; then
-        firefox "frontend/algo_builder.html" "frontend/algo_manager.html" &
-    elif command -v google-chrome &> /dev/null; then
-        google-chrome "frontend/algo_builder.html" "frontend/algo_manager.html" &
-    elif command -v chromium &> /dev/null; then
-        chromium "frontend/algo_builder.html" "frontend/algo_manager.html" &
-    else
-        echo "No supported browser found. Please open the following files manually:"
-        echo "frontend/algo_builder.html"
-        echo "frontend/algo_manager.html"
-    fi
-}
-
 # Main execution
 echo "Setting up trader-boi environment (Linux)..."
 

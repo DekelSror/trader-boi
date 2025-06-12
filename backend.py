@@ -66,18 +66,16 @@ async def create_algo(body: dict):
     try:
         algo_title: str = body['title']
         module_name = '_'.join(algo_title.lower().split(' '))
-        algo_class = ''.join(algo_title.split(' '))
         file_path = f'generated_algos/{module_name}.py'
-        print(f'create algo {algo_title=} {module_name=} {algo_class=} {file_path=}')
+        print(f'create algo {algo_title=} {module_name=}')
 
-        build_algo_file(body, file_path, algo_class)
-        running_algo = load_algo_from_file(module_name, file_path, algo_class)
+        build_algo_file(body, file_path)
+        running_algo = load_algo_from_file(module_name, file_path)
 
         config_path = f'algo_configs/{module_name}.json'
         with open(config_path, 'w') as config_file:
             json.dump({
                 'algo_title': algo_title,
-                'algo_class': algo_class,
                 'module_name': module_name,
                 'file_path': file_path,
                 'state': running_algo.state,
@@ -111,17 +109,24 @@ def load_existing_algos():
             print(f'Error loading algorithm {file_path}: {str(e)}')
 
 
-def load_algo_from_file(module_name: str, file_path: str, algo_class: str) -> RunningAlgo:
-    """Load an algorithm from a file and create a RunningAlgo instance"""
-    # Import the module
+def load_algo_from_file(module_name: str, file_path: str) -> RunningAlgo:
+    """Load an algorithm from a file, auto-discover the Algo subclass, and create a RunningAlgo instance."""
     spec = importlib.util.spec_from_file_location(module_name, file_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    
-    # Create algorithm instance
-    algo_class = getattr(module, algo_class)
+
+    # Find all classes in the module that inherit from Algo
+    algo_classes = [
+        cls for name, cls in vars(module).items()
+        if isinstance(cls, type) and issubclass(cls, Algo) and cls is not Algo
+    ]
+    if len(algo_classes) == 0:
+        raise RuntimeError(f"No Algo subclass found in {file_path}")
+    if len(algo_classes) > 1:
+        raise RuntimeError(f"Multiple Algo subclasses found in {file_path}: {[cls.__name__ for cls in algo_classes]}")
+    algo_class = algo_classes[0]
     algo_instance = algo_class()
-    
+
     # Create and return RunningAlgo instance
     return RunningAlgo(
         algo_class=algo_class,
