@@ -14,7 +14,6 @@ from market_types import Trade
 
 # Server configuration
 HOST = '127.0.0.1'
-PORT = 9000
 
 # Symbols to use for mock data
 SYMBOLS = ['AAA']
@@ -85,7 +84,7 @@ def start_server():
     try:
         server_socket.bind(('127.0.0.1', MOCKER_PORT))
         server_socket.listen(5)
-        print(f"Server started on 127.0.0.1:MOCKER_PORT")
+        print(f"Server started on 127.0.0.1:{MOCKER_PORT}")
         
         while True:
             client_socket, address = server_socket.accept()

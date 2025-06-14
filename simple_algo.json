@@ -1,17 +1,15 @@
 {
     "title": "Simple Algo Is Best Algo",
-    "import_params": {
-        "algo_class": "Algorithm",
-        "path": "/home/dekel/src/trader-boi/simple_algo.py",
-        "module_name": "simple_algo"
-    },
-    "algo_params": {
-        "cooldown": 120
-    },
+    "algo_params": [
+        ["cooldown", [120]],
+        ["moving_average", [600]]
+    ],
     "rules": [
         {
             "conditions": [
-                ["trade.price", ">", 700.0]
+                ["trade.price", ">", 700.0],
+                ["param_0", "==", true],
+                ["param_1", ">", 550.0]
             ],
             "action": "SELL"
         },
