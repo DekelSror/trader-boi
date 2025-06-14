@@ -1,21 +1,21 @@
 {
     "title": "Simple Algo Is Best Algo",
-    "algo_params": [
-        ["cooldown", [120]],
-        ["moving_average", [600]]
+    "params": [
+        {"param_type": "cooldown", "init_args": [120]},
+        {"param_type": "moving_average", "init_args": [600]}
     ],
     "rules": [
         {
             "conditions": [
-                ["trade.price", ">", 700.0],
-                ["param_0", "==", true],
-                ["param_1", ">", 550.0]
+                {"left": "trade.price", "op": ">", "right": 700.0},
+                {"left": "param_0", "op": "==", "right": true},
+                {"left": "param_1", "op": ">", "right": 550.0}
             ],
             "action": "SELL"
         },
         {
             "conditions": [
-                ["trade.price", "<", 400.0]
+                {"left": "trade.price", "op": "<", "right": 400.0}
             ],
             "action": "BUY"
         }

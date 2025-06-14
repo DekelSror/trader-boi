@@ -12,13 +12,18 @@ from algo_types import AlgoSchema, AlgoParam, AlgoRule, AlgoCondition
 
 def parse_schema(user_input: dict) -> AlgoSchema:
     params = []
-    for param_type, init_args in user_input['algo_params']:
+    for p in user_input['params']:
+        param_type = p['param_type']
+        init_args = p['init_args']
         params.append(AlgoParam(param_type=param_type, init_args=init_args))
     
     rules = []
     for rule in user_input['rules']:
         conditions = []
-        for left, op, right in rule['conditions']:
+        for condition in rule['conditions']:
+            left = condition['left']
+            op = condition['op']
+            right = condition['right']
             conditions.append(AlgoCondition(left=left, op=op, right=right))
         rules.append(AlgoRule(conditions=conditions, action=rule['action']))
     
@@ -191,7 +196,14 @@ def load_existing_algos():
 
 
 
+# raw: dict = {'title': 'the old one two', 
+#     'params': [{'param_type': 'cooldown', 'init_args': [3]}],
+#     'rules': [{'conditions': [
+#         {'left': 'trade.price', 'op': '>', 'right': '500'}], 'action': 'BUY'}, {'conditions': [
+#             {'left': 'trade.price', 'op': '<', 'right': '500'}], 'action': 'SELL'}]}
 
+# res = create_algo(raw)
+# debug = 1
 
 # with open('simple_algo.json', 'r') as source:
 #     raw: dict = json.load(source)
