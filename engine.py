@@ -113,8 +113,11 @@ def write_algo(schema: AlgoSchema):
 
     the_class = CodeStatement(
         st=f'class {''.join(t.capitalize() for t in schema.title.split(' '))}(Algo):',
-        children=[algo_init, on_trade]
+        children=[on_trade]
     )
+
+    if algo_init.children:
+        the_class.children.append(algo_init)
 
     res.append(write_code_statement(the_class, 0))
 
@@ -196,11 +199,13 @@ def load_existing_algos():
 
 
 
-# raw: dict = {'title': 'the old one two', 
-#     'params': [{'param_type': 'cooldown', 'init_args': [3]}],
-#     'rules': [{'conditions': [
-#         {'left': 'trade.price', 'op': '>', 'right': '500'}], 'action': 'BUY'}, {'conditions': [
-#             {'left': 'trade.price', 'op': '<', 'right': '500'}], 'action': 'SELL'}]}
+# raw: dict = {
+#     'title': 'My Awesome Algo',
+#     'rules': [
+#         {'conditions': [{'left': 'trade.price', 'op': '>', 'right': '500'}], 'action': 'BUY'},
+#         {'conditions': [{'left': 'trade.price', 'op': '>', 'right': '500'}], 'action': 'SELL'}],
+#     'params': []
+# }
 
 # res = create_algo(raw)
 # debug = 1

@@ -1,5 +1,5 @@
 from algo import Algo
-from cooldown import Cooldown
+from params.cooldown import Cooldown
 
 class Algorithm(Algo):
     def __init__(self) -> None:
@@ -14,6 +14,9 @@ class Algorithm(Algo):
 
         # rules
         action = None
+        rule_0 = 0
+        rule_0_target = 3
+
         if trade.price > 700:
             action = 'SELL'
         elif trade.price < 400:
